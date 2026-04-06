@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <div class="activity-participants">
             <strong>Participants:</strong>
-            ${details.participants.length > 0 ? `<ul>${details.participants.map((participant) => `<li>${participant}</li>`).join("")}</ul>` : `<p class="no-participants">No participants yet.</p>`}
+            ${details.participants.length > 0 ? `<ul>${details.participants.map((participant) => `<li>${participant} <span class="delete-participant" data-activity="${name}" data-email="${participant}">×</span></li>`).join("")}</ul>` : `<p class=\"no-participants\">No participants yet.</p>`}
           </div>
         `;
 
@@ -82,6 +82,35 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
+    }
+  });
+
+  // Handle delete participant
+  document.addEventListener("click", async (event) => {
+    if (event.target.classList.contains("delete-participant")) {
+      const activity = event.target.dataset.activity;
+      const email = event.target.dataset.email;
+
+      try {
+        const response = await fetch(
+          `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Refresh activities
+          fetchActivities();
+        } else {
+          alert(result.detail || "An error occurred");
+        }
+      } catch (error) {
+        alert("Failed to remove participant. Please try again.");
+        console.error("Error removing participant:", error);
+      }
     }
   });
 
